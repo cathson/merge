@@ -23,10 +23,10 @@ def get_user_input():
 
     name = input("请输入名字(CZS): ").upper()
     brand = input("请输入品牌(HM、RR): ").upper()
-    product = input("请输入产品(HG、HO、HOP、NK、MGG): ").upper()
+    product = input("请输入产品(HG、HO、HOP、NK、MGG、TCG): ").upper()
 
     # 获取瓶装数
-    if product in ['HG', 'HO', 'HOP','MGG']:
+    if product in ['HG', 'HO', 'HOP','MGG','TCG']:
         while True:
             bottle_num = input("请输入瓶装数(数字): ")
             if bottle_num.isdigit():

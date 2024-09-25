@@ -22,10 +22,10 @@ def get_user_input():
 
     name = input("请输入名字(CZS): ").upper()
     brand = input("请输入品牌(HM、RR): ").upper()
-    product = input("请输入产品(HG、HO、HOP、NK、MGG): ").upper()
+    product = input("请输入产品(HG、HO、HOP、NK、MGG、TCG): ").upper()
 
     # 获取瓶装数
-    if product in ['HG', 'HO', 'HOP','MGG']:
+    if product in ['HG', 'HO', 'HOP','MGG','TCG']:
         while True:
             bottle_num = input("请输入瓶装数(数字): ")
             if bottle_num.isdigit():
@@ -138,7 +138,7 @@ def process_table_2(target_file, start_row=4):
 
     # 插入数据到 A 列
     cell_a = f'A{start_row}'
-    if product in ['HG', 'HO','MGG']:
+    if product in ['HG', 'HO','MGG','TCG']:
         sheet[cell_a] = 'nutritionalsupplement'
     elif product == 'HOP':
         sheet[cell_a] = 'petsuppliesmisc'
@@ -149,7 +149,10 @@ def process_table_2(target_file, start_row=4):
     if bottle_num:
         # Insert SKU without sequence number in B4
         cell_b = f'B{start_row}'
-        spawn_sku_no_seq = f'{brand}{product}{bottle_num}-{name}-{datetime_str}'
+        if bottle_num:
+            spawn_sku_no_seq = f'{brand}-{product}-{bottle_num}-{name}-{datetime_str}'
+        else:
+            spawn_sku_no_seq = f'{brand}-{product}-{name}-{datetime_str}'
         sheet[cell_b] = spawn_sku_no_seq
 
         # Insert SKU with sequence number from B5 onwards
@@ -158,6 +161,51 @@ def process_table_2(target_file, start_row=4):
             sequence_number = i + 1
             spawn_sku = f'{spawn_sku_no_seq}-{sequence_number}'
             sheet[cell_b] = spawn_sku
+
+    # 插入数据到 C 列
+    cell_c = f'C{start_row}'
+    if brand == 'CN':
+        sheet[cell_c] = 'CHANUBITO'
+    elif brand == 'HM':
+        sheet[cell_c] = 'HMone'
+    elif brand == 'RRH':
+        sheet[cell_c] = 'RiRywony Health'
+    elif brand == 'WA':
+        sheet[cell_c] = 'WACHRAY'
+    elif brand == 'NT':
+        sheet[cell_c] = 'NUBETONG'
+    elif brand == 'LH':
+        sheet[cell_c] = 'letollhold'
+    elif brand == 'LC':
+        sheet[cell_c] = 'LUCKCHAN'
+    elif brand == 'MX':
+        sheet[cell_c] = 'MaxHemp'
+    elif brand == 'DR':
+        sheet[cell_c] = 'Drloton'
+    elif brand == 'HEM':
+        sheet[cell_c] = 'HEMOMAC'
+    elif brand == 'SU':
+        sheet[cell_c] = 'SUXHDRPURE'
+    elif brand == 'TA':
+        sheet[cell_c] = 'TOPCAPAK'
+    elif brand == 'MO':
+        sheet[cell_c] = 'MOSRAY'
+    elif brand == 'HZ':
+        sheet[cell_c] = 'Hoozzch'
+    elif brand == 'HY':
+        sheet[cell_c] = 'Hemyum'
+    elif brand == 'ZG':
+        sheet[cell_c] = 'ziehooGe'
+    elif brand == 'NR':
+        sheet[cell_c] = 'NLMUBR LUCKSIT'
+    elif brand == 'SUO':
+        sheet[cell_c] = 'SUOOCH'
+    elif brand == 'RR':
+        sheet[cell_c] = 'RiRywony'
+    elif brand == 'CF':
+        sheet[cell_c] = 'CHICFAN'
+    elif brand == 'MA':
+        sheet[cell_c] = 'MAMOWYZ'
 
     # 插入数据到 D 列
     for i in range(start_row, start_row + asin_count + 1):
@@ -175,7 +223,7 @@ def process_table_2(target_file, start_row=4):
             sheet[f'I{start_row + i + 1}'] = value
 
     # 插入数据到 J 列
-    for i in range(start_row + 1, start_row + asin_count + 1):
+    for i in range(start_row, start_row + asin_count + 1):
         sheet[f'J{i}'] = 'ASIN'
 
     # 插入数据到 E 列

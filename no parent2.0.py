@@ -23,10 +23,10 @@ def get_user_input():
     shop_name = input("请输入店铺名(例：SB、T29): ").upper()
     name = input("请输入名字(例：CZS): ").upper()
     brand = input("请输入品牌(例：HM、RR): ").upper()
-    product = input("请输入产品(例：HG、HO、HOP、NK01、MGG): ").upper()
+    product = input("请输入产品(例：HG、HO、HOP、NK01、MGG、TCG): ").upper()
 
     # 获取瓶装数
-    if product in ['HG', 'HO', 'HOP','MGG']:
+    if product in ['HG', 'HO', 'HOP','MGG','TCG','CMG']:
         while True:
             bottle_num = input("请输入瓶装数(数字): ")
             if bottle_num.isdigit():
@@ -110,6 +110,15 @@ def process_table_1(target_file, start_row=4):
         # 插入数据到X列
         sheet[cell_x] = 'PartialUpdate'
 
+        if variation_theme == "SizeName-ColorName":
+            size_data = asin_df['Keepa_Size'].dropna().tolist()
+            color_data = asin_df['Keepa_Color'].dropna().tolist()
+            for i, (size, color) in enumerate(zip(size_data, color_data)):
+                sheet[f'AL{start_row + i}'] = size
+                sheet[f'AM{start_row + i}'] = color
+                sheet[f'AN{start_row + i}'] = color
+
+
     # 另存为新文件，不替换模板
     new_filename = f'{brand}{product}{bottle_num}-{name}-{datetime_str}-1.xlsx'
     wb.save(f'./无父体2.0合并表/{new_filename}')
@@ -133,7 +142,7 @@ def process_table_2(target_file, start_row=4):
     # 插入数据到 A 列
     for i in range(asin_count + 1):  # +1 for the additional row
         cell_a = f'A{start_row + i}'
-        if product in ['HG', 'HO','MGG']:
+        if product in ['HG', 'HO','MGG','TCG','CMG']:
             sheet[cell_a] = 'nutritionalsupplement'
         elif product == 'HOP':
             sheet[cell_a] = 'petsuppliesmisc'
