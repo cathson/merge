@@ -1,5 +1,6 @@
 import pandas as pd
 from openpyxl import load_workbook
+from brands import brand_names
 from datetime import datetime
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
@@ -9,7 +10,7 @@ shop_name = ""
 name = ""
 brand = ""
 product = ""
-bottle_num = ""
+unit_num = ""
 asin_file = ""
 asin_df = None  # 用于存储 ASIN 文件中的数据
 asin_count = 0  # 用于存储 ASIN 的数量
@@ -19,7 +20,7 @@ Parent_SKU = "" # 用来存储父SKU
 
 # 获取用户输入
 def get_user_input():
-    global shop_name, name, brand, product, bottle_num, asin_file, asin_df, asin_count, variation_theme,Parent_SKU
+    global shop_name, name, brand, product, unit_num, asin_file, asin_df, asin_count, variation_theme,Parent_SKU
 
     shop_name = input("请输入店铺名(SB、T29): ").upper()
     name = input("请输入名字(CZS): ").upper()
@@ -27,17 +28,19 @@ def get_user_input():
     product = input("请输入产品(HG、HO、HOP、NK、MGG、TCG): ").upper()
 
     # 获取瓶装数
-    if product in ['HG', 'HO', 'HOP','MGG','TCG']:
-        while True:
-            bottle_num = input("请输入瓶装数(数字): ")
-            if bottle_num.isdigit():
-                bottle_num += 'P'
-                break
-            else:
-                print("输入无效，请输入数字！")
+    while True:
+        unit = input("是否需要单位数(例：Y,N 默认Y)").upper()
+        # 获取单位
+        if unit == "Y" or unit == " ":
+            unit_num = input("请输入数量+单位(例：2P,3set)").upper()
+            break
+        elif unit == "N":
+            break
+        else:
+            print("输入有效，请输入Y或N！")
 
     # 用户选择变体主题
-    print("请选择变体主题：")
+    print("请选择变体主题(默认1)：")
     print("1. Flavor")
     print("2. SizeName")
     print("3. ColorName")
@@ -47,6 +50,7 @@ def get_user_input():
     # print("7. Style")
 
     variation_theme_choices = {
+        "" : "Flavor",
         "1": "Flavor",
         "2": "SizeName",
         "3": "ColorName",
@@ -76,7 +80,7 @@ def get_user_input():
 
 # 表1的处理函数
 def process_table_1(target_file, start_row=4):
-    global shop_name, name, brand, product, bottle_num, asin_count, datetime_str
+    global shop_name, name, brand, product, unit_num, asin_count, datetime_str
 
     # 读取目标文件
     wb = load_workbook(target_file)
@@ -100,10 +104,8 @@ def process_table_1(target_file, start_row=4):
 
         # 插入数据到B列
         sequence_number = i + 1
-        if bottle_num:
-            spawn_sku = f'{shop_name}-{brand}{product}{bottle_num}-{name}-{datetime_str}-{sequence_number}'
-        else:
-            spawn_sku = f'{shop_name}-{brand}{product}-{name}-{datetime_str}-{sequence_number}'
+        spawn_sku = f'{shop_name}-{brand}{product}{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}-{sequence_number}'
+
 
         sheet[cell_b] = spawn_sku
 
@@ -122,14 +124,14 @@ def process_table_1(target_file, start_row=4):
                 sheet[f'AN{start_row + i}'] = color
 
     # 另存为新文件，不替换模板
-    new_filename = f'{brand}{product}{bottle_num}-{name}-{datetime_str}-1.xlsx'
+    new_filename = f'{brand}{product}{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}-1.xlsx'
     wb.save(f'./有父体2.0合并表/{new_filename}')
 
     print(f"表1处理完成: {new_filename}")
 
 # 表2的处理函数
 def process_table_2(target_file, start_row=4):
-    global shop_name, name, brand, product, bottle_num, asin_file, asin_df, asin_count, variation_theme
+    global shop_name, name, brand, product, unit_num, asin_file, asin_df, asin_count, variation_theme
 
     # 读取目标文件
     wb = load_workbook(target_file)
@@ -152,13 +154,12 @@ def process_table_2(target_file, start_row=4):
             sheet[cell_a] = 'underpants'
 
     # 插入数据到 B 列
-    if bottle_num:
-        cell_b = f'B{start_row}'
-        for i in range(asin_count - 1):
-            cell_b = f'B{start_row + i}'
-            sequence_number = i + 1
-            spawn_sku = f'{shop_name}-{brand}{product}{bottle_num}-{name}-{datetime_str}-{sequence_number}'
-            sheet[cell_b] = spawn_sku
+    cell_b = f'B{start_row}'
+    for i in range(asin_count - 1):
+        cell_b = f'B{start_row + i}'
+        sequence_number = i + 1
+        spawn_sku = f'{shop_name}-{brand}{product}{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}-{sequence_number}'
+        sheet[cell_b] = spawn_sku
 
     # 插入数据到 D 列
     for i in range(start_row, start_row + asin_count - 1):
@@ -212,7 +213,7 @@ def process_table_2(target_file, start_row=4):
             sheet[f'BD{start_row + i}'] = value
 
     # 另存为新文件，不替换模板
-    new_filename = f'{brand}{product}{bottle_num}-{name}-{datetime_str}-2.xlsx'
+    new_filename = f'{brand}{product}{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}-2.xlsx'
     wb.save(f'./有父体2.0合并表./{new_filename}')
 
     print(f"表2处理完成: {new_filename}")
@@ -235,11 +236,7 @@ def process_table_3(target_file, start_row=4):
 
         # 生成 spawn_sku
         sequence_number = i + 1
-        if bottle_num:
-            spawn_sku = f'{shop_name}-{brand}{product}{bottle_num}-{name}-{datetime_str}-{sequence_number}'
-        else:
-            spawn_sku = f'{shop_name}-{brand}{product}-{name}-{datetime_str}-{sequence_number}'
-
+        spawn_sku = f'{shop_name}-{brand}{product}{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}-{sequence_number}'
         sheet[cell_b] = spawn_sku
 
     # 插入数据到 D 列，全部填入 'update'
@@ -247,11 +244,16 @@ def process_table_3(target_file, start_row=4):
         sheet[f'D{start_row + i}'] = 'update'
 
     # 插入数据到 E 列，从上传文件中的 '标题' 列中提取数据
-    if '标题' in asin_df.columns:
-        title_column_index = asin_df.columns.get_loc('标题')  # 获取 '标题' 列的索引
-        title_data = asin_df.iloc[:, title_column_index].dropna().tolist()[1:]  # 获取该列下面的所有数据
+    if '标题' in asin_df.columns: 
+        title_column_index = asin_df.columns.get_loc('标题')  # 获取 '标题' 列的索引 
+        title_data = asin_df.iloc[:, title_column_index].dropna().tolist()  # 获取该列下面的所有数据 
+
         for i, value in enumerate(title_data):
-            sheet[f'E{start_row + i}'] = value
+            # 遍历品牌名列表，依次删除标题中的品牌名
+            for brand_name in brand_names:
+                if brand_name in value:
+                    value = value.replace(brand_name, "").strip()  # 删除品牌名并去除首尾空格
+            sheet[f'E{start_row + i}'] = value  # 将处理后的标题插入到表格中
 
     # 插入数据到 F 列，从上传文件中的 'ASIN' 列中提取数据
     if 'ASIN' in asin_df.columns:
@@ -298,7 +300,7 @@ def process_table_3(target_file, start_row=4):
         sheet[f'FJ{start_row + i}'] = 1
 
     # 另存为新文件
-    new_filename = f'{brand}{product}{bottle_num}-{name}-{datetime_str}-3.xlsx'
+    new_filename = f'{brand}{product}{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}-3.xlsx'
     wb_table3.save(f'./有父体2.0合并表/{new_filename}')
 
     print(f"表3处理完成: {new_filename}")

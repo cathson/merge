@@ -1,4 +1,5 @@
 import pandas as pd
+from nodes import omega_node,nk_node,pet_node
 from openpyxl import load_workbook
 from datetime import datetime
 from tkinter import Tk
@@ -9,7 +10,7 @@ shop_name = ""
 name = ""
 brand = ""
 product = ""
-bottle_num = ""
+unit_num = ""
 asin_file = ""
 asin_df = None  # 用于存储 ASIN 文件中的数据
 asin_count = 0  # 用于存储 ASIN 的数量
@@ -18,24 +19,25 @@ variation_theme = ""  # 全局变量用于存储变体主题
 
 # 获取用户输入
 def get_user_input():
-    global name, brand, product, bottle_num, asin_file, asin_df, asin_count, variation_theme
+    global name, brand, product, unit_num, asin_file, asin_df, asin_count, variation_theme
 
     name = input("请输入名字(CZS): ").upper()
     brand = input("请输入品牌(HM、RR): ").upper()
     product = input("请输入产品(HG、HO、HOP、NK、MGG、TCG): ").upper()
-
-    # 获取瓶装数
-    if product in ['HG', 'HO', 'HOP','MGG','TCG']:
-        while True:
-            bottle_num = input("请输入瓶装数(数字): ")
-            if bottle_num.isdigit():
-                bottle_num += 'P'
-                break
-            else:
-                print("输入无效，请输入数字！")
+    
+    while True:
+        unit = input("是否需要单位数(例：Y,N 默认Y)").upper()
+        # 获取单位
+        if unit == "Y" or unit == " ":
+            unit_num = input("请输入数量+单位(例：2P,3set)").upper()
+            break
+        elif unit == "N":
+            break
+        else:
+            print("输入有效，请输入Y或N！")
 
     # 用户选择变体主题
-    print("请选择变体主题：")
+    print("请选择变体主题(默认1)：")
     print("1. Flavor")
     print("2. SizeName")
     print("3. ColorName")
@@ -45,6 +47,7 @@ def get_user_input():
     # print("7. Style")
 
     variation_theme_choices = {
+        "": "Flavor",
         "1": "Flavor",
         "2": "SizeName",
         "3": "ColorName",
@@ -72,7 +75,7 @@ def get_user_input():
 
 # 表1的处理函数
 def process_table_1(target_file, start_row=4):
-    global name, brand, product, bottle_num, asin_count, datetime_str
+    global name, brand, product, unit_num, asin_count, datetime_str
 
     # 读取目标文件
     wb = load_workbook(target_file)
@@ -92,11 +95,7 @@ def process_table_1(target_file, start_row=4):
 
         # 插入数据到B列
         sequence_number = i + 1
-        if bottle_num:
-            spawn_sku = f'{brand}-{product}-{bottle_num}-{name}-{datetime_str}-{sequence_number}'
-        else:
-            spawn_sku = f'{brand}-{product}-{name}-{datetime_str}-{sequence_number}'
-
+        spawn_sku = f'{brand}-{product}-{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}-{sequence_number}'
         sheet[cell_b] = spawn_sku
 
         # 插入数据到D列
@@ -113,18 +112,14 @@ def process_table_1(target_file, start_row=4):
             sheet[cell_e] = 'ASIN'
             sheet[cell_y] = 'Update'
 
-    # 另存为新文件，不替换模板
-    if bottle_num:
-        new_filename = f'GM-{brand}{product}{bottle_num}-{name}-{datetime_str}.xlsx'
-    else:
-        new_filename = f'GM-{brand}{product}-{name}-{datetime_str}.xlsx'
+    new_filename = f'GM-{brand}{product}{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}.xlsx'
     wb.save(f'./无父体1.0合并表/{new_filename}')
 
     print(f"跟卖表处理完成: {new_filename}")
 
 # 表2的处理函数
 def process_table_2(target_file, start_row=4):
-    global name, brand, product, bottle_num, asin_file, asin_df, asin_count, variation_theme
+    global name, brand, product, unit_num, asin_file, asin_df, asin_count, variation_theme
 
     # 读取目标文件
     wb = load_workbook(target_file)
@@ -132,80 +127,52 @@ def process_table_2(target_file, start_row=4):
 
     # 清空 B4 到 X 列的现有数据
     for row in range(start_row, start_row + asin_count + 1):  # +1 for the additional row
-        for col in [ 'B', 'D', 'I', 'J', 'AJ', 'AK', 'AL', 'AM', 'AW', 'AX', 'AY', 'BB', 'BD']:  # 清空列
+        for col in [ 'B', 'C','D', 'I', 'J', 'AJ', 'AK', 'AL', 'AM', 'AW', 'AX', 'AY', 'BB', 'BD']:  # 清空列
             cell = sheet[f'{col}{row}']
             cell.value = None  # 清空单元格内容
 
     # 插入数据到 A 列
-    cell_a = f'A{start_row}'
-    if product in ['HG', 'HO','MGG','TCG']:
-        sheet[cell_a] = 'nutritionalsupplement'
-    elif product == 'HOP':
-        sheet[cell_a] = 'petsuppliesmisc'
-    elif product == 'NK':
-        sheet[cell_a] = 'underpants'
+    node_name = "商品节点"
+    for i in range(asin_count + 1):  # +1 for the additional row
+        cell_a = f'A{start_row + i}'
+        # 检查节点是否存在
+        if node_name in asin_df.columns:
+            node_column_index = asin_df.columns.get_loc(node_name)  # 获取标题列的索引
+            node_value = asin_df.iloc[0, node_column_index]  # 获取标题下面的第一个数据
+            if node_value in omega_node:
+                sheet[cell_a] = 'nutritionalsupplement'
+            elif node_value in pet_node:
+                sheet[cell_a] = 'petsuppliesmisc'
+            elif node_value in nk_node:
+                sheet[cell_a] = 'underpants'
+            else:
+                print(f"警告: '{node_value}' 不存在于节点列表中")
+        else:
+            print(f"警告: '{node_name}' 列不存在于文件中")
 
     # 插入数据到 B 列
-    if bottle_num:
-        # Insert SKU without sequence number in B4
-        cell_b = f'B{start_row}'
-        if bottle_num:
-            spawn_sku_no_seq = f'{brand}-{product}-{bottle_num}-{name}-{datetime_str}'
-        else:
-            spawn_sku_no_seq = f'{brand}-{product}-{name}-{datetime_str}'
-        sheet[cell_b] = spawn_sku_no_seq
+    cell_b = f'B{start_row}'
+    spawn_sku_no_seq = f'{brand}-{product}-{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}'
+    sheet[cell_b] = spawn_sku_no_seq
 
-        # Insert SKU with sequence number from B5 onwards
-        for i in range(asin_count):
-            cell_b = f'B{start_row + i + 1}'
-            sequence_number = i + 1
-            spawn_sku = f'{spawn_sku_no_seq}-{sequence_number}'
-            sheet[cell_b] = spawn_sku
+    # Insert SKU with sequence number from B5 onwards
+    for i in range(asin_count):
+        cell_b = f'B{start_row + i + 1}'
+        sequence_number = i + 1
+        spawn_sku = f'{spawn_sku_no_seq}-{sequence_number}'
+        sheet[cell_b] = spawn_sku
 
     # 插入数据到 C 列
     cell_c = f'C{start_row}'
-    if brand == 'CN':
-        sheet[cell_c] = 'CHANUBITO'
-    elif brand == 'HM':
-        sheet[cell_c] = 'HMone'
-    elif brand == 'RRH':
-        sheet[cell_c] = 'RiRywony Health'
-    elif brand == 'WA':
-        sheet[cell_c] = 'WACHRAY'
-    elif brand == 'NT':
-        sheet[cell_c] = 'NUBETONG'
-    elif brand == 'LH':
-        sheet[cell_c] = 'letollhold'
-    elif brand == 'LC':
-        sheet[cell_c] = 'LUCKCHAN'
-    elif brand == 'MX':
-        sheet[cell_c] = 'MaxHemp'
-    elif brand == 'DR':
-        sheet[cell_c] = 'Drloton'
-    elif brand == 'HEM':
-        sheet[cell_c] = 'HEMOMAC'
-    elif brand == 'SU':
-        sheet[cell_c] = 'SUXHDRPURE'
-    elif brand == 'TA':
-        sheet[cell_c] = 'TOPCAPAK'
-    elif brand == 'MO':
-        sheet[cell_c] = 'MOSRAY'
-    elif brand == 'HZ':
-        sheet[cell_c] = 'Hoozzch'
-    elif brand == 'HY':
-        sheet[cell_c] = 'Hemyum'
-    elif brand == 'ZG':
-        sheet[cell_c] = 'ziehooGe'
-    elif brand == 'NR':
-        sheet[cell_c] = 'NLMUBR LUCKSIT'
-    elif brand == 'SUO':
-        sheet[cell_c] = 'SUOOCH'
-    elif brand == 'RR':
-        sheet[cell_c] = 'RiRywony'
-    elif brand == 'CF':
-        sheet[cell_c] = 'CHICFAN'
-    elif brand == 'MA':
-        sheet[cell_c] = 'MAMOWYZ'
+    brand_name = '页面品牌'
+    # 检查标题列是否存在
+    if brand_name in asin_df.columns:
+        brand_column_index = asin_df.columns.get_loc(brand_name)  # 获取标题列的索引
+        brand_value = asin_df.iloc[0, brand_column_index]  # 获取标题下面的第一个数据
+        sheet[cell_c] = brand_value
+    else:
+        print(f"警告: '{brand_name}' 列不存在于 ASIN 文件中")
+
 
     # 插入数据到 D 列
     for i in range(start_row, start_row + asin_count + 1):
@@ -291,11 +258,8 @@ def process_table_2(target_file, start_row=4):
             sheet[f'AY{start_row + i + 1}'] = value
             sheet[f'BD{start_row + i + 1}'] = value
 
-    # 另存为新文件，不替换模板
-    if bottle_num:
-        new_filename = f'{brand}{product}{bottle_num}-{name}-{datetime_str}.xlsx'
-    else:
-        new_filename = f'{brand}{product}-{name}-{datetime_str}.xlsx'
+
+    new_filename = f'HB-{brand}{product}{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}.xlsx'
     wb.save(f'./无父体1.0合并表./{new_filename}')
 
     print(f"合并表处理完成: {new_filename}")
