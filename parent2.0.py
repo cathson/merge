@@ -31,7 +31,7 @@ def get_user_input():
     while True:
         unit = input("是否需要单位数(例：Y,N 默认Y)").upper()
         # 获取单位
-        if unit == "Y" or unit == " ":
+        if unit == "Y" or unit == "":
             unit_num = input("请输入数量+单位(例：2P,3set)").upper()
             break
         elif unit == "N":
@@ -46,8 +46,7 @@ def get_user_input():
     print("3. ColorName")
     print("4. SizeName-ColorName")
     print("5. Flavor-Size")
-    print("6. Color")
-    # print("7. Style")
+    # print("6. Style")
 
     variation_theme_choices = {
         "" : "Flavor",
@@ -56,8 +55,7 @@ def get_user_input():
         "3": "ColorName",
         "4": "SizeName-ColorName",
         "5": "Flavor-Size",
-        "6": "Color",
-        "7": "style"
+        "6": "style"
     }
 
     while True:
@@ -244,15 +242,19 @@ def process_table_3(target_file, start_row=4):
         sheet[f'D{start_row + i}'] = 'update'
 
     # 插入数据到 E 列，从上传文件中的 '标题' 列中提取数据
+    brand_name = '页面品牌'  # Placeholder for the column header of the brand name
     if '标题' in asin_df.columns: 
         title_column_index = asin_df.columns.get_loc('标题')  # 获取 '标题' 列的索引 
-        title_data = asin_df.iloc[:, title_column_index].dropna().tolist()  # 获取该列下面的所有数据 
+        title_data = asin_df.iloc[:, title_column_index].dropna().tolist()  # 获取标题列下所有数据
+
+        if brand_name in asin_df.columns:
+            brand_column_index = asin_df.columns.get_loc(brand_name)  # 获取品牌名列的索引
+            extracted_brand = asin_df.iloc[0, brand_column_index]  # 获取品牌列下的第一个数据 (品牌名)
 
         for i, value in enumerate(title_data):
-            # 遍历品牌名列表，依次删除标题中的品牌名
-            for brand_name in brand_names:
-                if brand_name in value:
-                    value = value.replace(brand_name, "").strip()  # 删除品牌名并去除首尾空格
+            # 检查标题中是否包含提取的品牌名
+            if extracted_brand in value:
+                value = value.replace(extracted_brand, "").strip()  # 删除品牌名并去除首尾空格
             sheet[f'E{start_row + i}'] = value  # 将处理后的标题插入到表格中
 
     # 插入数据到 F 列，从上传文件中的 'ASIN' 列中提取数据
@@ -269,31 +271,38 @@ def process_table_3(target_file, start_row=4):
     # 插入数据到 H 列、I 列、J 列、S 列，根据变体主题插入相应数据
     if variation_theme == "Flavor":
         if 'Flavor' in asin_df.columns:
-            flavor_data = asin_df['Flavor'].dropna().tolist()[1:]
+            flavor_data = asin_df['Flavor'].dropna().tolist()
             for i, value in enumerate(flavor_data):
                 sheet[f'H{start_row + i}'] = value
 
-    if variation_theme == "SizeName":
+    elif variation_theme == "SizeName":
         if 'Keepa_Size' in asin_df.columns:
-            size_data = asin_df['Keepa_Size'].dropna().tolist()[1:]
+            size_data = asin_df['Keepa_Size'].dropna().tolist()
             for i, value in enumerate(size_data):
                 sheet[f'I{start_row + i}'] = value
 
-    if variation_theme == "ColorName":
+    elif variation_theme == "ColorName":
         if 'Keepa_Color' in asin_df.columns:
-            color_data = asin_df['Keepa_Color'].dropna().tolist()[1:]
+            color_data = asin_df['Keepa_Color'].dropna().tolist()
             for i, value in enumerate(color_data):
                 sheet[f'J{start_row + i}'] = value
                 sheet[f'S{start_row + i}'] = value  # S 列与 J 列相同
 
-    if variation_theme == "SizeName-ColorName":
+    elif variation_theme == "SizeName-ColorName":
         if 'Keepa_Size' in asin_df.columns and 'Keepa_Color' in asin_df.columns:
-            size_data = asin_df['Keepa_Size'].dropna().tolist()[1:]
-            color_data = asin_df['Keepa_Color'].dropna().tolist()[1:]
+            size_data = asin_df['Keepa_Size'].dropna().tolist()
+            color_data = asin_df['Keepa_Color'].dropna().tolist()
             for i, (size, color) in enumerate(zip(size_data, color_data)):
                 sheet[f'I{start_row + i}'] = size
                 sheet[f'J{start_row + i}'] = color
                 sheet[f'S{start_row + i}'] = color  # S 列与 J 列相同
+
+    elif variation_theme == "Flavor-Size":
+        flavor_data = asin_df['Flavor'].dropna().tolist()
+        size_data = asin_df['Keepa_Size'].dropna().tolist()
+        for i, (flavor, size) in enumerate(zip(flavor_data, size_data)):
+            sheet[f'H{start_row + i + 1}'] = flavor
+            sheet[f'I{start_row + i + 1}'] = size
 
     # 插入数据到 FJ 列，全部填入 '1'
     for i in range(asin_count - 1):

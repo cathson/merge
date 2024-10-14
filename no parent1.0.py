@@ -43,8 +43,7 @@ def get_user_input():
     print("3. ColorName")
     print("4. SizeName-ColorName")
     print("5. Flavor-Size")
-    print("6. Color")
-    # print("7. Style")
+    # print("6. Style")
 
     variation_theme_choices = {
         "": "Flavor",
@@ -53,8 +52,7 @@ def get_user_input():
         "3": "ColorName",
         "4": "SizeName-ColorName",
         "5": "Flavor-Size",
-        "6": "Color",
-        "7": "style"
+        # "6": "style"
     }
 
     while True:
@@ -251,13 +249,6 @@ def process_table_2(target_file, start_row=4):
         for i, (flavor, size) in enumerate(zip(flavor_data, size_data)):
             sheet[f'AW{start_row + i + 1}'] = flavor
             sheet[f'AX{start_row + i + 1}'] = size
-
-    elif variation_theme == "Color":
-        color_data = asin_df['Keepa_Color'].dropna().tolist()
-        for i, value in enumerate(color_data):
-            sheet[f'AY{start_row + i + 1}'] = value
-            sheet[f'BD{start_row + i + 1}'] = value
-
 
     new_filename = f'HB-{brand}{product}{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}.xlsx'
     wb.save(f'./无父体1.0合并表./{new_filename}')
