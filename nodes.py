@@ -91,6 +91,7 @@ omega_node = [
     "Health & Household > Diet & Sports Nutrition > Sports Nutrition > Amino Acids > BCAAs",
     "Health & Household > Diet & Sports Nutrition > Weight Loss > Supplements > Detox & Cleanse",
     "Health & Household > Vitamins, Minerals & Supplements > Digestive Supplements > Charcoal"
+    "Health & Household > Vitamins, Minerals & Supplements > Amino Acids > Creatine > Flash Player"
 ]
 
 pet_node = [

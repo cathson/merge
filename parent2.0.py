@@ -1,6 +1,6 @@
 import pandas as pd
+from nodes import omega_node,nk_node,pet_node
 from openpyxl import load_workbook
-from brands import brand_names
 from datetime import datetime
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
@@ -22,14 +22,14 @@ Parent_SKU = "" # 用来存储父SKU
 def get_user_input():
     global shop_name, name, brand, product, unit_num, asin_file, asin_df, asin_count, variation_theme,Parent_SKU
 
-    shop_name = input("请输入店铺名(SB、T29): ").upper()
-    name = input("请输入名字(CZS): ").upper()
-    brand = input("请输入品牌(HM、RR): ").upper()
-    product = input("请输入产品(HG、HO、HOP、NK、MGG、TCG): ").upper()
+    shop_name = input("请输入店铺名(例：DJ、T29): ").upper()
+    name = input("请输入名字(例：CZS): ").upper()
+    brand = input("请输入品牌(例：HM、RR): ").upper()
+    product = input("请输入产品(例：HG、HO、HOP、NK01、MGG、TCG): ").upper()
 
-    # 获取瓶装数
+    # 获取单位
     while True:
-        unit = input("是否需要单位数(例：Y,N 默认Y)").upper()
+        unit = input("是否需要单位数(例：Y,N (默认Y))").upper()
         # 获取单位
         if unit == "Y" or unit == "":
             unit_num = input("请输入数量+单位(例：2P,3set)").upper()
@@ -37,7 +37,8 @@ def get_user_input():
         elif unit == "N":
             break
         else:
-            print("输入有效，请输入Y或N！")
+            print("输入无效，请输入Y或N！")
+
 
     # 用户选择变体主题
     print("请选择变体主题(默认1)：")
@@ -142,14 +143,23 @@ def process_table_2(target_file, start_row=4):
             cell.value = None  # 清空单元格内容
 
     # 插入数据到 A 列
-    for i in range(asin_count - 1):  # +1 for the additional row
+    node_name = "商品节点"
+    for i in range(asin_count + 1):  # +1 for the additional row
         cell_a = f'A{start_row + i}'
-        if product in ['HG', 'HO','MGG','TCG']:
-            sheet[cell_a] = 'nutritionalsupplement'
-        elif product == 'HOP':
-            sheet[cell_a] = 'petsuppliesmisc'
-        elif product == 'NK':
-            sheet[cell_a] = 'underpants'
+        # 检查节点是否存在
+        if node_name in asin_df.columns:
+            node_column_index = asin_df.columns.get_loc(node_name)  # 获取标题列的索引
+            node_value = asin_df.iloc[0, node_column_index]  # 获取标题下面的第一个数据
+            if node_value in omega_node:
+                sheet[cell_a] = 'nutritionalsupplement'
+            elif node_value in pet_node:
+                sheet[cell_a] = 'petsuppliesmisc'
+            elif node_value in nk_node:
+                sheet[cell_a] = 'underpants'
+            else:
+                print(f"警告: '{node_value}' 不存在于节点列表中")
+        else:
+            print(f"警告: '{node_name}' 列不存在于文件中")
 
     # 插入数据到 B 列
     cell_b = f'B{start_row}'
