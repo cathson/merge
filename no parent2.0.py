@@ -4,6 +4,8 @@ from openpyxl import load_workbook
 from datetime import datetime
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+from rapidfuzz import fuzz
+
 
 # 全局变量，用于存储用户输入和 ASIN 文件
 shop_name = ""
@@ -144,17 +146,18 @@ def process_table_2(target_file, start_row=4):
 
     # 插入数据到 A 列
     node_name = "商品节点"
-    for i in range(asin_count + 1):  # +1 for the additional row
+    similarity_threshold = 90
+    for i in range(asin_count - 1):  # +1 for the additional row
         cell_a = f'A{start_row + i}'
         # 检查节点是否存在
         if node_name in asin_df.columns:
-            node_column_index = asin_df.columns.get_loc(node_name)  # 获取标题列的索引
-            node_value = asin_df.iloc[0, node_column_index]  # 获取标题下面的第一个数据
-            if node_value in omega_node:
+            node_column_index = asin_df.columns.get_loc(node_name)  # 获取节点列的索引
+            node_value = asin_df.iloc[0, node_column_index]  # 获取节点下面的第一个数据
+            if any(fuzz.partial_ratio(node_value.lower(), n.lower()) >= similarity_threshold for n in omega_node):
                 sheet[cell_a] = 'nutritionalsupplement'
-            elif node_value in pet_node:
+            elif any(fuzz.partial_ratio(node_value.lower(), n.lower()) >= similarity_threshold for n in pet_node):
                 sheet[cell_a] = 'petsuppliesmisc'
-            elif node_value in nk_node:
+            elif any(fuzz.partial_ratio(node_value.lower(), n.lower()) >= similarity_threshold for n in nk_node):
                 sheet[cell_a] = 'underpants'
             else:
                 print(f"警告: '{node_value}' 不存在于节点列表中")

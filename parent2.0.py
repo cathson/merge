@@ -4,6 +4,8 @@ from openpyxl import load_workbook
 from datetime import datetime
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+from rapidfuzz import fuzz
+
 
 # 全局变量，用于存储用户输入和 ASIN 文件
 shop_name = ""
@@ -142,19 +144,22 @@ def process_table_2(target_file, start_row=4):
             cell = sheet[f'{col}{row}']
             cell.value = None  # 清空单元格内容
 
+    
+
     # 插入数据到 A 列
     node_name = "商品节点"
-    for i in range(asin_count + 1):  # +1 for the additional row
+    similarity_threshold = 90
+    for i in range(asin_count - 1):  # +1 for the additional row
         cell_a = f'A{start_row + i}'
         # 检查节点是否存在
         if node_name in asin_df.columns:
-            node_column_index = asin_df.columns.get_loc(node_name)  # 获取标题列的索引
-            node_value = asin_df.iloc[0, node_column_index]  # 获取标题下面的第一个数据
-            if node_value in omega_node:
+            node_column_index = asin_df.columns.get_loc(node_name)  # 获取节点列的索引
+            node_value = asin_df.iloc[0, node_column_index]  # 获取节点下面的第一个数据
+            if any(fuzz.partial_ratio(node_value.lower(), n.lower()) >= similarity_threshold for n in omega_node):
                 sheet[cell_a] = 'nutritionalsupplement'
-            elif node_value in pet_node:
+            elif any(fuzz.partial_ratio(node_value.lower(), n.lower()) >= similarity_threshold for n in pet_node):
                 sheet[cell_a] = 'petsuppliesmisc'
-            elif node_value in nk_node:
+            elif any(fuzz.partial_ratio(node_value.lower(), n.lower()) >= similarity_threshold for n in nk_node):
                 sheet[cell_a] = 'underpants'
             else:
                 print(f"警告: '{node_value}' 不存在于节点列表中")
@@ -255,7 +260,7 @@ def process_table_3(target_file, start_row=4):
     brand_name = '页面品牌'  # Placeholder for the column header of the brand name
     if '标题' in asin_df.columns: 
         title_column_index = asin_df.columns.get_loc('标题')  # 获取 '标题' 列的索引 
-        title_data = asin_df.iloc[:, title_column_index].dropna().tolist()  # 获取标题列下所有数据
+        title_data = asin_df.iloc[:, title_column_index].dropna().tolist()[1:]  # 获取标题列下所有数据
 
         if brand_name in asin_df.columns:
             brand_column_index = asin_df.columns.get_loc(brand_name)  # 获取品牌名列的索引
@@ -281,35 +286,35 @@ def process_table_3(target_file, start_row=4):
     # 插入数据到 H 列、I 列、J 列、S 列，根据变体主题插入相应数据
     if variation_theme == "Flavor":
         if 'Flavor' in asin_df.columns:
-            flavor_data = asin_df['Flavor'].dropna().tolist()
+            flavor_data = asin_df['Flavor'].dropna().tolist()[1:]
             for i, value in enumerate(flavor_data):
                 sheet[f'H{start_row + i}'] = value
 
     elif variation_theme == "SizeName":
         if 'Keepa_Size' in asin_df.columns:
-            size_data = asin_df['Keepa_Size'].dropna().tolist()
+            size_data = asin_df['Keepa_Size'].dropna().tolist()[1:]
             for i, value in enumerate(size_data):
                 sheet[f'I{start_row + i}'] = value
 
     elif variation_theme == "ColorName":
         if 'Keepa_Color' in asin_df.columns:
-            color_data = asin_df['Keepa_Color'].dropna().tolist()
+            color_data = asin_df['Keepa_Color'].dropna().tolist()[1:]
             for i, value in enumerate(color_data):
                 sheet[f'J{start_row + i}'] = value
                 sheet[f'S{start_row + i}'] = value  # S 列与 J 列相同
 
     elif variation_theme == "SizeName-ColorName":
         if 'Keepa_Size' in asin_df.columns and 'Keepa_Color' in asin_df.columns:
-            size_data = asin_df['Keepa_Size'].dropna().tolist()
-            color_data = asin_df['Keepa_Color'].dropna().tolist()
+            size_data = asin_df['Keepa_Size'].dropna().tolist()[1:]
+            color_data = asin_df['Keepa_Color'].dropna().tolist()[1:]
             for i, (size, color) in enumerate(zip(size_data, color_data)):
                 sheet[f'I{start_row + i}'] = size
                 sheet[f'J{start_row + i}'] = color
                 sheet[f'S{start_row + i}'] = color  # S 列与 J 列相同
 
     elif variation_theme == "Flavor-Size":
-        flavor_data = asin_df['Flavor'].dropna().tolist()
-        size_data = asin_df['Keepa_Size'].dropna().tolist()
+        flavor_data = asin_df['Flavor'].dropna().tolist()[1:]
+        size_data = asin_df['Keepa_Size'].dropna().tolist()[1:]
         for i, (flavor, size) in enumerate(zip(flavor_data, size_data)):
             sheet[f'H{start_row + i + 1}'] = flavor
             sheet[f'I{start_row + i + 1}'] = size
