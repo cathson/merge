@@ -29,7 +29,7 @@ def get_user_input():
     while True:
         unit = input("是否需要单位数(例：Y,N 默认Y)").upper()
         # 获取单位
-        if unit == "Y" or unit == " ":
+        if unit == "Y" or unit == "":
             unit_num = input("请输入数量+单位(例：2P,3set)").upper()
             break
         elif unit == "N":
@@ -96,7 +96,7 @@ def process_table_1(target_file, start_row=4):
 
         # 插入数据到B列
         sequence_number = i + 1
-        spawn_sku = f'{brand}-{product}-{unit_num + "-" if unit_num else "-"}-{name}-{datetime_str}-{sequence_number}'
+        spawn_sku = f'{brand}-{product}-{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}-{sequence_number}'
 
 
         sheet[cell_b] = spawn_sku
@@ -116,7 +116,7 @@ def process_table_1(target_file, start_row=4):
             sheet[cell_y] = 'Update'
 
     # 另存为新文件，不替换模板
-    new_filename = f'GM-{brand}{product}{unit_num + "-" if unit_num else "-"}-{name}-{datetime_str}.xlsx'
+    new_filename = f'GM-{brand}{product}{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}.xlsx'
 
     wb.save(f'./有父体1.0合并表/{new_filename}')
 
@@ -141,7 +141,7 @@ def process_table_2(target_file, start_row=4):
     for i in range(asin_count - 1):
         cell_b = f'B{start_row + i}'
         sequence_number = i + 1
-        spawn_sku = f'{brand}-{product}-{unit_num + "-" if unit_num else "-"}-{name}-{datetime_str}-{sequence_number}'
+        spawn_sku = f'{brand}-{product}-{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}-{sequence_number}'
         sheet[cell_b] = spawn_sku
 
 
@@ -199,7 +199,7 @@ def process_table_2(target_file, start_row=4):
 
 
     # 另存为新文件，不替换模板
-    new_filename = f'HB-{brand}{product}{unit_num + "-" if unit_num else "-"}-{name}-{datetime_str}.xlsx'
+    new_filename = f'HB-{brand}{product}{unit_num + "-" if unit_num else "-"}{name}-{datetime_str}.xlsx'
     wb.save(f'./有父体1.0合并表./{new_filename}')
 
     print(f"合并表处理完成: {new_filename}")

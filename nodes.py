@@ -90,8 +90,8 @@ omega_node = [
     "Health & Household > Vitamins, Minerals & Supplements > Antioxidants > Polyphenol",
     "Health & Household > Diet & Sports Nutrition > Sports Nutrition > Amino Acids > BCAAs",
     "Health & Household > Diet & Sports Nutrition > Weight Loss > Supplements > Detox & Cleanse",
-    "Health & Household > Vitamins, Minerals & Supplements > Digestive Supplements > Charcoal"
-    "Health & Household > Vitamins, Minerals & Supplements > Amino Acids > Creatine > Flash Player"
+    "Health & Household > Vitamins, Minerals & Supplements > Digestive Supplements > Charcoal",
+    "Health & Household > Vitamins, Minerals & Supplements > Amino Acids > Creatine > Flash Player",
     "Health & Household > Vitamins, Minerals & Supplements > Minerals > Magnesium > Flash Player"
 ]
 
@@ -269,13 +269,14 @@ pet_node = [
     "Pet Supplies > Birds > Birdcage Accessories > Nesting Material",
     "Pet Supplies > Birds > Birdcage Accessories > Bird Bathing Supplies",
     "Pet Supplies > Birds > Birdcage Accessories > Bird Seed",
-    "Pet Supplies > Fish & Aquatic Pets > Aquarium Heaters & Chillers > Aquarium Heaters > Inline Heaters"
-    "Pet Supplies > Dogs > Health Supplies > Hip & Joint Care > Flash Player"
-    "Pet Supplies > Dogs > Health Supplies > Supplements & Vitamins > Herbal Supplements"
+    "Pet Supplies > Fish & Aquatic Pets > Aquarium Heaters & Chillers > Aquarium Heaters > Inline Heaters",
+    "Pet Supplies > Dogs > Health Supplies > Hip & Joint Care > Flash Player",
+    "Pet Supplies > Dogs > Health Supplies > Supplements & Vitamins > Herbal Supplements",
+    "Pet Supplies › Dogs › Health Supplies › Relaxants"
 ]
 
 nk_node = [
     "Clothing, Shoes & Jewelry > Women > Clothing > Lingerie, Sleep & Lounge > Lingerie > Shapewear > Thigh Slimmers",
-    "Clothing, Shoes & Jewelry > Women > Clothing > Lingerie, Sleep & Lounge > Lingerie"
+    "Clothing, Shoes & Jewelry > Women > Clothing > Lingerie, Sleep & Lounge > Lingerie",
     "Clothing, Shoes & Jewelry > Women > Clothing > Lingerie, Sleep & Lounge > Sleep & Lounge"
 ]

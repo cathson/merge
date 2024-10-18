@@ -28,7 +28,7 @@ def get_user_input():
     while True:
         unit = input("是否需要单位数(例：Y,N 默认Y)").upper()
         # 获取单位
-        if unit == "Y" or unit == " ":
+        if unit == "Y" or unit == "":
             unit_num = input("请输入数量+单位(例：2P,3set)").upper()
             break
         elif unit == "N":

@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 from nodes import omega_node,nk_node,pet_node
 from openpyxl import load_workbook
 from datetime import datetime
@@ -79,6 +80,20 @@ def get_user_input():
     asin_df = pd.read_excel(asin_file)
     asin_count = asin_df['ASIN'].count()  # 根据实际的列名替换 'ASIN'
 
+def preprocess_nodes(node_list):
+    """预处理节点列表，转换为小写并移除空格"""
+    processed_list = []
+    for node in node_list:
+        processed_node = node.lower()  # 转换为小写
+        processed_node = re.sub(r'\s+', '', processed_node)  # 移除所有空格
+        processed_list.append(processed_node)
+    return processed_list
+
+# 预处理节点列表
+omega_node = preprocess_nodes(omega_node)
+pet_node = preprocess_nodes(pet_node)
+nk_node = preprocess_nodes(nk_node)
+
 # 表1的处理函数
 def process_table_1(target_file, start_row=4):
     global shop_name, name, brand, product, unit_num, asin_count, datetime_str
@@ -148,23 +163,25 @@ def process_table_2(target_file, start_row=4):
 
     # 插入数据到 A 列
     node_name = "商品节点"
-    similarity_threshold = 90
-    for i in range(asin_count - 1):  # +1 for the additional row
+    for i in range(asin_count - 1):
         cell_a = f'A{start_row + i}'
-        # 检查节点是否存在
         if node_name in asin_df.columns:
-            node_column_index = asin_df.columns.get_loc(node_name)  # 获取节点列的索引
-            node_value = asin_df.iloc[0, node_column_index]  # 获取节点下面的第一个数据
-            if any(fuzz.partial_ratio(node_value.lower(), n.lower()) >= similarity_threshold for n in omega_node):
-                sheet[cell_a] = 'nutritionalsupplement'
-            elif any(fuzz.partial_ratio(node_value.lower(), n.lower()) >= similarity_threshold for n in pet_node):
-                sheet[cell_a] = 'petsuppliesmisc'
-            elif any(fuzz.partial_ratio(node_value.lower(), n.lower()) >= similarity_threshold for n in nk_node):
-                sheet[cell_a] = 'underpants'
-            else:
-                print(f"警告: '{node_value}' 不存在于节点列表中")
+            node_column_index = asin_df.columns.get_loc(node_name)
+            node_value = asin_df.iloc[0, node_column_index].lower()
+            node_value = re.sub(r'\s+', '', node_value)
+
+            match_found = False # English flag variable
+
+            for node_list, category in [(omega_node, 'nutritionalsupplement'), (pet_node, 'petsuppliesmisc'), (nk_node, 'underpants')]:
+                if node_value in node_list:
+                    sheet[cell_a] = category
+                    match_found = True
+                    break
+
+            if not match_found:
+                print(f"'{node_value}' 不存在于节点列表中")
         else:
-            print(f"警告: '{node_name}' 列不存在于文件中")
+            print(f"'{node_name}' 列不存在于文件中")
 
     # 插入数据到 B 列
     cell_b = f'B{start_row}'
@@ -257,7 +274,7 @@ def process_table_3(target_file, start_row=4):
         sheet[f'D{start_row + i}'] = 'update'
 
     # 插入数据到 E 列，从上传文件中的 '标题' 列中提取数据
-    brand_name = '页面品牌'  # Placeholder for the column header of the brand name
+    brand_name = 'Keepa_品牌'  # Placeholder for the column header of the brand name
     if '标题' in asin_df.columns: 
         title_column_index = asin_df.columns.get_loc('标题')  # 获取 '标题' 列的索引 
         title_data = asin_df.iloc[:, title_column_index].dropna().tolist()[1:]  # 获取标题列下所有数据
