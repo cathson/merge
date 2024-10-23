@@ -43,16 +43,16 @@ def get_user_input():
     print("3. ColorName")
     print("4. SizeName-ColorName")
     print("5. Flavor-Size")
-    # print("6. Style")
+    print("6. color-size")
 
     variation_theme_choices = {
-        "": "Flavor",
+        "" : "Flavor",
         "1": "Flavor",
         "2": "SizeName",
         "3": "ColorName",
         "4": "SizeName-ColorName",
         "5": "Flavor-Size",
-        # "6": "style"
+        "6": "color-size",
     }
 
     while True:
@@ -235,7 +235,7 @@ def process_table_2(target_file, start_row=4):
             sheet[f'AY{start_row + i + 1}'] = value
             sheet[f'BD{start_row + i + 1}'] = value
 
-    elif variation_theme == "SizeName-ColorName":
+    elif variation_theme == "SizeName-ColorName" or variation_theme == "color-size":
         size_data = asin_df['Keepa_Size'].dropna().tolist()
         color_data = asin_df['Keepa_Color'].dropna().tolist()
         for i, (size, color) in enumerate(zip(size_data, color_data)):

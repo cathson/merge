@@ -93,6 +93,7 @@ omega_node = [
     "Health & Household > Vitamins, Minerals & Supplements > Digestive Supplements > Charcoal",
     "Health & Household > Vitamins, Minerals & Supplements > Amino Acids > Creatine > Flash Player",
     "Health & Household > Vitamins, Minerals & Supplements > Minerals > Magnesium > Flash Player"
+    "Health & Household > Vitamins, Minerals & Supplements > Herbal Supplements > Turmeric > Flash Player"
 ]
 
 pet_node = [
